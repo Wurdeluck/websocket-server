@@ -91,20 +91,24 @@ function sendMessage() {
 }
 
 function showMessage(message) {
-    const currentUser = $("#name").val().trim();
-    // Check if the message was sent by the current user.
-    const isCurrentUser = message.sender === currentUser;
-    const alignment = isCurrentUser ? 'flex-start' : 'flex-end';
-    // Assign a CSS class to change message color.
-    const messageClass = isCurrentUser ? 'user' : 'other';
+    const currentUser = $('#name').val().trim();
+    const isUser = message.sender === currentUser;
+    const messageClass = isUser ? 'user' : 'other';
+    // For current user, display messages on the left; for others, on the right.
+    const alignment = isUser ? 'flex-start' : 'flex-end';
+    const notAlignment = isUser ? 'flex-end' : 'flex-start';
 
-    $("#chat-messages").append(`
-    <div class="message ${messageClass}" style="align-self: ${alignment};">
-      <div class="message-content">${message.content}</div>
-      <div class="sender-info">${message.sender}</div>
+    $('#chat-messages').append(`
+    <div style="display: flex; flex-direction: column; align-items: ${alignment}; margin-bottom: 10px;">
+      <div class="message ${messageClass}" style="padding: 12px 16px; border-radius: 15px;">
+        ${message.content}
+      </div>
+      <div class="sender-info" style="font-size: 0.8em; color: #555; margin-top: 5px; align-self: ${notAlignment};">
+        ${message.sender}
+      </div>
     </div>
   `);
-    // Auto-scroll to show latest message.
+
     const container = document.getElementById('chat-messages');
     container.scrollTop = container.scrollHeight;
 }
