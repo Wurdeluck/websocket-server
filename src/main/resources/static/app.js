@@ -65,15 +65,20 @@ function sendMessage() {
 }
 
 function showMessage(message) {
-    // Here we assume message object has sender and content properties.
-    // For simplicity, we display all messages as user messages.
-    const messageClass = "user";
-    $("#chat-messages").append(`
-    <div class="message ${messageClass}">
+    const currentUser = $('#name').val().trim(); // Get the current user's name (trim whitespace)
+    const isUser = message.sender === currentUser; // Check if the sender matches the current user
+    // Use "user" if the message is from the current user; otherwise "other"
+    const messageClass = isUser ? 'user' : 'other';
+    // Display current user messages on the left and other messages on the right
+    const alignment = isUser ? 'flex-start' : 'flex-end';
+
+    $('#chat-messages').append(`
+    <div class="message ${messageClass}" style="align-self: ${alignment};">
       <strong>${message.sender}:</strong> ${message.content}
     </div>
   `);
-    // Auto-scroll to bottom of messages container.
+
+    // Auto-scroll to the bottom of the messages container
     const container = document.getElementById('chat-messages');
     container.scrollTop = container.scrollHeight;
 }
