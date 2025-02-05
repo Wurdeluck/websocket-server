@@ -21,6 +21,15 @@ body {
     flex-direction: column;
 }
 
+/* Sender name styling below the chat bubble */
+.sender-info {
+    text-align: right;
+    font-size: 0.8em;
+    color: #555;
+    margin-top: 5px;
+}
+
+
 .chat-header {
     padding: 15px;
     border-bottom: 1px solid var(--border-color);

@@ -1,18 +1,24 @@
+// Global array to hold names of active users (demo only)
+let activeUsers = [];
+
 const stompClient = new StompJs.Client({
     brokerURL: 'ws://localhost:8080/ws',
     debug: function (str) {
         console.log('STOMP: ' + str);
     },
-    // Automatically attempts reconnect every 200ms if disconnected.
     reconnectDelay: 200,
 });
 
 stompClient.onConnect = (frame) => {
     setConnected(true);
     console.log('Connected: ', frame);
-    // Subscribing to the topic and parsing the full message object.
+    // Subscribe to the chat topic.
     stompClient.subscribe('/topic/chat-msgs', (msg) => {
         const message = JSON.parse(msg.body);
+        // Update activeUsers if this sender is not already added.
+        if (message.sender && !activeUsers.includes(message.sender)) {
+            activeUsers.push(message.sender);
+        }
         showMessage(message);
     });
 };
@@ -29,7 +35,7 @@ stompClient.onStompError = (frame) => {
 function setConnected(connected) {
     $("#connect").prop("disabled", connected);
     $("#disconnect").prop("disabled", !connected);
-    // Update connection status indicator
+    // Toggle status indicator color.
     if (connected) {
         $("#status-indicator").addClass("connected");
     } else {
@@ -37,9 +43,28 @@ function setConnected(connected) {
     }
 }
 
+function checkUserName(userName) {
+    // Basic check if the username is already active in this client’s activeUsers array.
+    // In production, this should be done on the server.
+    return !activeUsers.includes(userName);
+}
+
 function connect() {
+    let userName = $("#name").val().trim();
+
+    if (userName === "") {
+        alert("Username cannot be empty.");
+        return;
+    }
+
+    if (!checkUserName(userName)) {
+        alert("User with the same name is already in chat! Please choose a different name.");
+        return;
+    }
+
+    // Add current user to activeUsers for this demo.
+    activeUsers.push(userName);
     stompClient.activate();
-    console.log("Connected");
 }
 
 function disconnect() {
@@ -49,45 +74,53 @@ function disconnect() {
 }
 
 function sendMessage() {
-    // Use stompClient.active to check if a connection is active.
     if (!stompClient.active) {
         alert("Broker disconnected, can't send message.");
         return false;
     }
+    // Publish message using keys "sender" and "content"
     stompClient.publish({
         destination: "/app/chat",
-        // Use consistent keys "sender" and "content" for messages.
         body: JSON.stringify({
-            sender: $("#name").val(),
+            sender: $("#name").val().trim(),
             content: $("#chat-msg").val()
         })
     });
+    // Clear the message input once sent.
+    $("#chat-msg").val('');
 }
 
 function showMessage(message) {
-    const currentUser = $('#name').val().trim(); // Get the current user's name (trim whitespace)
-    const isUser = message.sender === currentUser; // Check if the sender matches the current user
-    // Use "user" if the message is from the current user; otherwise "other"
-    const messageClass = isUser ? 'user' : 'other';
-    // Display current user messages on the left and other messages on the right
-    const alignment = isUser ? 'flex-start' : 'flex-end';
+    const currentUser = $("#name").val().trim();
+    // Check if the message was sent by the current user.
+    const isCurrentUser = message.sender === currentUser;
+    const alignment = isCurrentUser ? 'flex-start' : 'flex-end';
+    // Assign a CSS class to change message color.
+    const messageClass = isCurrentUser ? 'user' : 'other';
 
-    $('#chat-messages').append(`
+    $("#chat-messages").append(`
     <div class="message ${messageClass}" style="align-self: ${alignment};">
-      <strong>${message.sender}:</strong> ${message.content}
+      <div class="message-content">${message.content}</div>
+      <div class="sender-info">${message.sender}</div>
     </div>
   `);
-
-    // Auto-scroll to the bottom of the messages container
+    // Auto-scroll to show latest message.
     const container = document.getElementById('chat-messages');
     container.scrollTop = container.scrollHeight;
 }
 
-// Setup event listeners on page load.
 $(function () {
-    // Prevent the default form submission if any form is added.
+    // Prevent any default form submission.
     $("form").on('submit', (e) => e.preventDefault());
+
     $("#connect").click(() => connect());
     $("#disconnect").click(() => disconnect());
     $("#send").click(() => sendMessage());
+
+    // Trigger sendMessage() when user hits Enter in the message input.
+    $("#chat-msg").on("keyup", (e) => {
+        if (e.key === "Enter") {
+            sendMessage();
+        }
+    });
 });
