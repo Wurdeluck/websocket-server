@@ -1,6 +1,3 @@
-// Global array to hold names of active users (demo only)
-let activeUsers = [];
-
 const stompClient = new StompJs.Client({
     brokerURL: 'ws://localhost:8080/ws',
     debug: function (str) {
@@ -15,10 +12,6 @@ stompClient.onConnect = (frame) => {
     // Subscribe to the chat topic.
     stompClient.subscribe('/topic/chat-msgs', (msg) => {
         const message = JSON.parse(msg.body);
-        // Update activeUsers if this sender is not already added.
-        if (message.sender && !activeUsers.includes(message.sender)) {
-            activeUsers.push(message.sender);
-        }
         showMessage(message);
     });
 };
@@ -43,12 +36,6 @@ function setConnected(connected) {
     }
 }
 
-function checkUserName(userName) {
-    // Basic check if the username is already active in this client’s activeUsers array.
-    // In production, this should be done on the server.
-    return !activeUsers.includes(userName);
-}
-
 function connect() {
     let userName = $("#name").val().trim();
 
@@ -56,14 +43,6 @@ function connect() {
         alert("Username cannot be empty.");
         return;
     }
-
-    if (!checkUserName(userName)) {
-        alert("User with the same name is already in chat! Please choose a different name.");
-        return;
-    }
-
-    // Add current user to activeUsers for this demo.
-    activeUsers.push(userName);
     stompClient.activate();
 }
 
