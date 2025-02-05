@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>WebSocket Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style> src="main.css"</style>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <script src="app.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h4 class="m-0">WebSocket Chat</h4>
+            <div class="connection-status">
+                <span class="status-indicator"></span>
+                <button id="connect" class="btn btn-sm btn-default">Connect</button>
+                <button id="disconnect" class="btn btn-sm btn-default" disabled>Disconnect</button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be inserted here -->
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="name" class="form-control" placeholder="Your name" style="width: 120px;">
+            <input type="text" id="chat-msg" class="form-control message-input" placeholder="Type your message...">
+            <button id="send" class="btn btn-send">
+                <i class="fas fa-paper-plane"></i> Send
+            </button>
+        </div>
+    </div>
+</body>
+</html>
