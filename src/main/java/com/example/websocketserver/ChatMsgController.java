@@ -10,8 +10,8 @@ public class ChatMsgController {
 
     @MessageMapping("/chat")
     @SendTo("/topic/chat-msgs")
-    public ChatMsg chat(HelloMessage message) throws Exception {
-        return new ChatMsg(HtmlUtils.htmlEscape(message.getName()) + ": " + HtmlUtils.htmlEscape(message.getChatMsg()));
+    public ChatMessage chat(ChatMessage message) throws Exception {
+        return message;
     }
 
 }

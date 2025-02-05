@@ -3,15 +3,17 @@ const stompClient = new StompJs.Client({
     debug: function (str) {
         console.log('STOMP: ' + str);
     },
-    // If disconnected, it will retry after 200ms
+    // Automatically attempts reconnect every 200ms if disconnected.
     reconnectDelay: 200,
 });
 
 stompClient.onConnect = (frame) => {
     setConnected(true);
-    console.log('Connected: ' + frame);
+    console.log('Connected: ', frame);
+    // Subscribing to the topic and parsing the full message object.
     stompClient.subscribe('/topic/chat-msgs', (msg) => {
-        showMessage(JSON.parse(msg.body).content);
+        const message = JSON.parse(msg.body);
+        showMessage(message);
     });
 };
 
@@ -27,16 +29,17 @@ stompClient.onStompError = (frame) => {
 function setConnected(connected) {
     $("#connect").prop("disabled", connected);
     $("#disconnect").prop("disabled", !connected);
+    // Update connection status indicator
     if (connected) {
-        $("#conversation").show();
+        $("#status-indicator").addClass("connected");
     } else {
-        $("#conversation").hide();
+        $("#status-indicator").removeClass("connected");
     }
-    $("#greetings").html("");
 }
 
 function connect() {
     stompClient.activate();
+    console.log("Connected");
 }
 
 function disconnect() {
@@ -45,33 +48,41 @@ function disconnect() {
     console.log("Disconnected");
 }
 
-function sendName() {
-    if (!stompClient.connected) {
+function sendMessage() {
+    // Use stompClient.active to check if a connection is active.
+    if (!stompClient.active) {
         alert("Broker disconnected, can't send message.");
         return false;
     }
     stompClient.publish({
         destination: "/app/chat",
-        body: JSON.stringify({'name': $("#name").val(), 'chatMsg': $("#chat-msg").val()})
+        // Use consistent keys "sender" and "content" for messages.
+        body: JSON.stringify({
+            sender: $("#name").val(),
+            content: $("#chat-msg").val()
+        })
     });
 }
 
 function showMessage(message) {
-    const isUser = true;
-    const messageClass = isUser ? 'user' : 'other';
+    // Here we assume message object has sender and content properties.
+    // For simplicity, we display all messages as user messages.
+    const messageClass = "user";
     $("#chat-messages").append(`
-        <div class="message ${messageClass}">
-            <strong>${message.sender}:</strong> ${message.content}
-        </div>
-    `);
-    // Auto-scroll to bottom
+    <div class="message ${messageClass}">
+      <strong>${message.sender}:</strong> ${message.content}
+    </div>
+  `);
+    // Auto-scroll to bottom of messages container.
     const container = document.getElementById('chat-messages');
     container.scrollTop = container.scrollHeight;
 }
 
+// Setup event listeners on page load.
 $(function () {
+    // Prevent the default form submission if any form is added.
     $("form").on('submit', (e) => e.preventDefault());
     $("#connect").click(() => connect());
     $("#disconnect").click(() => disconnect());
-    $("#send").click(() => sendName());
+    $("#send").click(() => sendMessage());
 });
